@@ -1,0 +1,51 @@
+name: Deploy history
+
+on:
+  push: 
+    branches:
+      - main
+    paths:
+      - history/**
+
+  workflow_dispatch: 
+
+jobs:
+
+  deploy:
+    runs-on: ubuntu-latest
+    
+    env:
+      VERSION: ${{ github.sha }}
+      CONTAINER_REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
+      REGISTRY_UN: ${{ secrets.REGISTRY_UN }}
+      REGISTRY_PW: ${{ secrets.REGISTRY_PW  }}
+      NAME: history
+      DIRECTORY: history
+      KUBECTL_VERSION: ${{ secrets.KUBECTL_VERSION }}  
+
+    steps:
+      
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: ./scripts/cd/build-image.sh
+
+      - name: Publish
+        run: ./scripts/cd/push-image.sh
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Configure kubeconfig
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.kube
+          printf '%s' "${{ secrets.KUBE_CONFIG }}" | base64 --decode > ~/.kube/config
+          chmod 600 ~/.kube/config    
+      
+      - name: Deploy
+        run: ./scripts/cd/deploy.sh
+

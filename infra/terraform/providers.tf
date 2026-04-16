@@ -1,0 +1,1 @@
+/home/michael/ts168/infra/terraform-shared/providers.tf
