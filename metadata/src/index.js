@@ -40,11 +40,40 @@ async function startMicroservice(dbHost, dbName, rabbitHost, port) {
             res.json({ video });
         }
     });
-    
+
+    app.put("/video/:id/transcript", async (req, res) => {
+        try {
+            const videoId = new mongodb.ObjectId(req.params.id);
+
+            const { transcript } = req.body;
+
+            if (typeof transcript !== "string") {
+                return res.status(400).json({
+                    error: "transcript must be a string"
+                });
+            }
+
+            const result = await videosCollection.updateOne(
+                { _id: videoId },
+                { $set: { transcript } }
+            );
+
+            if (result.matchedCount === 0) {
+                return res.sendStatus(404);
+            }
+
+            res.json({
+                message: "Transcript saved."
+            });
+        } catch (err) {
+            res.sendStatus(400);
+        }
+    });
+
     //
     // Handles incoming RabbitMQ messages.
     //
-    async function consumeVideoUploadedMessage(msg) { 
+    async function consumeVideoUploadedMessage(msg) {
         console.log("Received a 'viewed-uploaded' message");
 
         const parsedMsg = JSON.parse(msg.content.toString()); // Parses the JSON message.
@@ -52,8 +81,9 @@ async function startMicroservice(dbHost, dbName, rabbitHost, port) {
         const videoMetadata = {
             _id: new mongodb.ObjectId(parsedMsg.video.id),
             name: parsedMsg.video.name,
+            transcript: ""
         };
-        
+
         await videosCollection.insertOne(videoMetadata) // Records the metadata for the video.
 
         console.log("Acknowledging message was handled.");
@@ -81,7 +111,7 @@ async function main() {
     if (!process.env.PORT) {
         throw new Error("Please specify the port number for the HTTP server with the environment variable PORT.");
     }
-    
+
     if (!process.env.DBHOST) {
         throw new Error("Please specify the database host using environment variable DBHOST.");
     }
@@ -89,11 +119,11 @@ async function main() {
     if (!process.env.DBNAME) {
         throw new Error("Please specify the database name using environment variable DBNAME.");
     }
-    
+
     if (!process.env.RABBIT) {
         throw new Error("Please specify the name of the RabbitMQ host using environment variable RABBIT");
     }
-    
+
     const PORT = process.env.PORT;
     const DBHOST = process.env.DBHOST;
     const DBNAME = process.env.DBNAME;

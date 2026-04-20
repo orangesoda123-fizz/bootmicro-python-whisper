@@ -1,4 +1,4 @@
-
+version: '3'
 services:
 
   db:
@@ -131,6 +131,36 @@ services:
       - rabbit
     restart: "no"
 
+  employees-crud:
+    build: 
+      context: ./employees-crud
+      dockerfile: Dockerfile-dev
+    container_name: employees-crud
+    volumes: 
+      - /tmp/employees-crud/npm-cache:/root/.npm:z
+      - ./employees-crud/src:/usr/src/app/src:z
+    ports:
+      - "3000:80"
+    environment: 
+      - PORT=80
+      - DATABASE_URL=postgres://postgres:postgres@employees-db:5432/lucky
+      - DB_SCHEMA=public
+      - DB_TABLE=employees  
+      - NODE_ENV=development 
+    depends_on:
+      - employees-db 
+    restart: "no"
+
+  employees-db:
+    image: postgres:16
+    container_name: employees-db
+    environment: 
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=lucky
+    ports:
+      - "5433:5432"
+
   # 
   # Uncomment this service to enable cloud storage.
   #
@@ -187,9 +217,11 @@ services:
     - "8000:80"
     environment: 
     - PORT=80
+    - VIDEO_STORAGE_SERVICE_URL=http://video-storage
+    depends_on:
+    - video-storage 
     restart: "no"
 
-    
   metadata:
     image: metadata
     build: 

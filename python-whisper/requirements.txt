@@ -4,3 +4,4 @@ pydantic
 openai-whisper 
 torch 
 python-multipart 
+requests 

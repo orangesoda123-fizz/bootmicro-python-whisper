@@ -5,8 +5,8 @@
 
         <title>FlixTube: Home</title>
 
-        <link rel="stylesheet" href="css/tailwind.min.css">
-        <link rel="stylesheet" href="css/app.css">
+        <link rel="stylesheet" href="/css/tailwind.min.css">
+        <link rel="stylesheet" href="/css/app.css">
     </head>
     <body>
         <div class="flex flex-col">
@@ -24,6 +24,9 @@
                     <div class="ml-4">
                         <a href="/history">History</a>
                     </div>
+                    <div class="ml-4">
+                        <a href="/employees">Employees</a>
+                    </div>
                 </div>
             </div>
 
@@ -31,11 +34,29 @@
                 <h1>Videos</h1>
                 <div id="video-list" class="m-4">
                     {{#if videos}}
-                        {{#each videos}}
-                            <div class="mt-1">
-                                <a href="/video?id={{this._id}}">{{this.name}}</a> 
-                            </div>
-                        {{/each}}
+                    <table>
+                        <tr>
+                            <th class="border-2 p-1 pl-2 pr-2">Video name</th>
+                            <th class="border-2 p-1 pl-2 pr-2">Transcribe option</th>
+                            <th class="border-2 p-1 pl-2 pr-2">Text from transcription</th>
+                        </tr>
+                            {{#each videos}}
+                                <tr class="mt-1">
+                                    <td class="border-2 p-1 pl-2 pr-2">
+                                        <a href="/video?id={{this._id}}">{{this.name}}</a> 
+                                    </td>
+                                    <td class="border-2 p-1 pl-2 pr-2">
+                                        <a href="/transcribe-video/redirect/{{this._id}}" 
+                                        class="transcribe-btn inline-block px-4 py-2 bg-blue-600 text-white no-underline rounded hover:bg-blue-700">
+                                        Transcribe
+                                        </a>
+                                    </td>
+                                    <td class="border-2 p-1 pl-2 pr-2">
+                                        {{this.transcript}}
+                                    </td>
+                                </tr>
+                            {{/each}}
+                    </table>
                     {{else}}
                         No videos uploaded yet.
                     {{/if}}
