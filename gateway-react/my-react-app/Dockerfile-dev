@@ -1,0 +1,10 @@
+FROM node:22.12.0
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+EXPOSE 5173
+
+CMD npm install --prefer-offline && \
+    npm run dev -- --host 0.0.0.0
