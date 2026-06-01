@@ -214,7 +214,7 @@ services:
     volumes: 
       - ./python-whisper/src:/app
     ports: 
-    - "8000:80"
+    - "8001:80"
     environment: 
     - PORT=80
     - VIDEO_STORAGE_SERVICE_URL=http://video-storage
@@ -242,4 +242,38 @@ services:
     depends_on:
       - db
       - rabbit
+    restart: "no"
+
+  gateway-react:
+    image: gateway-react
+    build:
+      context: ./gateway-react/my-react-app
+      dockerfile: Dockerfile-dev
+    container_name: gateway-react
+    volumes:
+      - /tmp/gateway-react/npm-cache:/root/.npm:z
+      - ./gateway-react/my-react-app:/usr/src/app:z
+      - /usr/src/app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend-python
+    restart: "no"
+
+  backend-python:
+    image: backend-python
+    build:
+      context: ./backend-python/python-shell
+      dockerfile: Dockerfile-dev
+    container_name: backend-python
+    volumes:
+      - ./backend-python/python-shell/index.py:/usr/src/app/index.py:z
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend-python/python-shell/.env
+    environment:
+      - SHELL_AUTO_APPROVE=1
     restart: "no"

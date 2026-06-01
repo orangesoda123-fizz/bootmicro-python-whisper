@@ -2,3 +2,15 @@ node_modules/
 todo.txt
 *.bak
 mock-storage/storage
+__pycache__/
+*.pyc
+*.pyo
+*.pyd 
+.venv/
+venv/
+ENV/
+.vscode/
+*.code-workspace 
+
+.env
+.env*.local

@@ -11,6 +11,16 @@ VIDEO_STORAGE_SERVICE_URL = os.getenv("VIDEO_STORAGE_SERVICE_URL", "http://video
 
 model = whisper.load_model("base")
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def convert_video_to_audio(video_path: str, audio_path: str):
     command = [
@@ -94,10 +104,14 @@ async def transcribe_uploaded_video(file: UploadFile = File(...)):
     video_suffix = os.path.splitext(file.filename)[1] or ".mp4"
     video_path = None
 
+    # 1. in transcribe_video_file, video_path is passed in 
+    # 2. video_path is taken from the write_bytes_to_temp_video function first 
+    # 3. temp audio_path is created, and the video is converted to audio at this path 
     try:
         video_bytes = await file.read()
         video_path = write_bytes_to_temp_video(video_bytes, video_suffix)
         return transcribe_video_file(video_path, file.filename)
+    
     finally:
         await file.close()
         if video_path and os.path.exists(video_path):
@@ -108,8 +122,12 @@ async def transcribe_uploaded_video(file: UploadFile = File(...)):
 async def transcribe_video_by_id(video_id: str):
     video_path = None
 
+    # 1. get video from storage 
+    # 2. change video into audio inside transcribe_video_file
+    # 3. use the video_path from video_storage and a temp audio file 
+    # 4. convert video to audio at that part and convert to text
     try:
-        video_path = download_video_from_storage(video_id)
+        video_path = download_video_from_storage(video_id) 
         return transcribe_video_file(video_path, video_id)
     finally:
         if video_path and os.path.exists(video_path):
